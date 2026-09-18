@@ -63,37 +63,3 @@ A binary operator without a left operand reports a targeted error:
 > + 1 * 2
 [line 1] Error at '+': Missing left-hand operand.
 ```
-
-## Written response
-
-Supporting nested comments requires the scanner to track how many comments are
-open. Each `/*` increases the nesting level, while each `*/` decreases it. The
-scanner must also count newlines inside comments to keep line numbers accurate.
-
-### Question 6.1
-
-```text
-expression  -> comma ;
-comma       -> conditional ( "," conditional )* ;
-```
-
-The comma operator has the lowest precedence and is left-associative. It groups
-`a, b, c` as `(a, b), c`. At runtime, the left operand is evaluated and its
-result is discarded before the right operand is evaluated and returned.
-
-### Question 6.2
-
-```text
-conditional -> equality ( "?" expression ":" conditional )? ;
-```
-
-The expression between `?` and `:` can use the full expression grammar,
-including a comma expression. The recursive `conditional` after `:` makes the
-entire operator right-associative.
-
-### Question 6.3
-
-Each binary-precedence parser detects an operator that appears without a left
-operand, reports `Missing left-hand operand.`, and parses and discards the
-right operand at the appropriate precedence. A leading `-` remains valid unary
-negation, so it is not reported as a missing binary operand.
