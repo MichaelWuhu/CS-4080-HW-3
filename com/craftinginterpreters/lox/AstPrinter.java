@@ -11,13 +11,19 @@ class AstPrinter implements Expr.Visitor<String> {
   }
 
   @Override
+  public String visitConditionalExpr(Expr.Conditional expr) {
+    return parenthesize("?:", expr.condition, expr.thenBranch, expr.elseBranch);
+  }
+
+  @Override
   public String visitGroupingExpr(Expr.Grouping expr) {
     return parenthesize("group", expr.expression);
   }
 
   @Override
   public String visitLiteralExpr(Expr.Literal expr) {
-    if (expr.value == null) return "nil";
+    if (expr.value == null)
+      return "nil";
     return expr.value.toString();
   }
 

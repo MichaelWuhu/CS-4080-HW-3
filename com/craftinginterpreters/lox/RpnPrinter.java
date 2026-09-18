@@ -13,20 +13,29 @@ public class RpnPrinter implements Expr.Visitor<String> {
   }
 
   @Override
+  public String visitConditionalExpr(Expr.Conditional expr) {
+    return expr.condition.accept(this) + " "
+        + expr.thenBranch.accept(this) + " "
+        + expr.elseBranch.accept(this) + " ?:";
+  }
+
+  @Override
   public String visitGroupingExpr(Expr.Grouping expr) {
     return expr.expression.accept(this);
   }
 
   @Override
   public String visitLiteralExpr(Expr.Literal expr) {
-    if (expr.value == null) return "nil";
+    if (expr.value == null)
+      return "nil";
     return expr.value.toString();
   }
 
   @Override
   public String visitUnaryExpr(Expr.Unary expr) {
     String operator = expr.operator.lexeme;
-    if (expr.operator.type == TokenType.MINUS) operator = "~";
+    if (expr.operator.type == TokenType.MINUS)
+      operator = "~";
     return expr.right.accept(this) + " " + operator;
   }
 

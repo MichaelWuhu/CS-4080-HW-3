@@ -5,7 +5,8 @@ import java.util.List;
 import static com.craftinginterpreters.lox.TokenType.*;
 
 class Parser {
-  private static class ParseError extends RuntimeException {}
+  private static class ParseError extends RuntimeException {
+  }
 
   private final List<Token> tokens;
   private int current = 0;
@@ -22,33 +23,53 @@ class Parser {
     }
   }
 
-  /*
-   * Question 6.1 grammar:
-   *
-   * expression → comma ;
-   * comma      → equality ( "," equality )* ;
-   *
-   * The * makes comma left-associative.
-   * Comma has lower precedence than equality.
-   */
-
+  // expression -> comma ;
   private Expr expression() {
     return comma();
   }
 
+  // comma -> conditional ( "," conditional )* ;
   private Expr comma() {
-    Expr expr = equality();
+    if (match(COMMA)) {
+      Token operator = previous();
+      ParseError error = error(operator, "Missing left-hand operand.");
+      conditional();
+      throw error;
+    }
+
+    Expr expr = conditional();
 
     while (match(COMMA)) {
       Token operator = previous();
-      Expr right = equality();
+      Expr right = conditional();
       expr = new Expr.Binary(expr, operator, right);
     }
 
     return expr;
   }
 
+  // conditional -> equality ( "?" expression ":" conditional )? ;
+  private Expr conditional() {
+    Expr expr = equality();
+
+    if (match(QUESTION)) {
+      Expr thenBranch = expression();
+      consume(COLON, "Expect ':' after conditional expression.");
+      Expr elseBranch = conditional();
+      expr = new Expr.Conditional(expr, thenBranch, elseBranch);
+    }
+
+    return expr;
+  }
+
   private Expr equality() {
+    if (match(BANG_EQUAL, EQUAL_EQUAL)) {
+      Token operator = previous();
+      ParseError error = error(operator, "Missing left-hand operand.");
+      comparison();
+      throw error;
+    }
+
     Expr expr = comparison();
 
     while (match(BANG_EQUAL, EQUAL_EQUAL)) {
@@ -61,6 +82,13 @@ class Parser {
   }
 
   private Expr comparison() {
+    if (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
+      Token operator = previous();
+      ParseError error = error(operator, "Missing left-hand operand.");
+      term();
+      throw error;
+    }
+
     Expr expr = term();
 
     while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
@@ -73,6 +101,14 @@ class Parser {
   }
 
   private Expr term() {
+    // A leading minus remains valid because Lox also uses '-' as unary negation.
+    if (match(PLUS)) {
+      Token operator = previous();
+      ParseError error = error(operator, "Missing left-hand operand.");
+      factor();
+      throw error;
+    }
+
     Expr expr = factor();
 
     while (match(MINUS, PLUS)) {
@@ -85,6 +121,13 @@ class Parser {
   }
 
   private Expr factor() {
+    if (match(SLASH, STAR)) {
+      Token operator = previous();
+      ParseError error = error(operator, "Missing left-hand operand.");
+      unary();
+      throw error;
+    }
+
     Expr expr = unary();
 
     while (match(SLASH, STAR)) {
@@ -107,9 +150,12 @@ class Parser {
   }
 
   private Expr primary() {
-    if (match(FALSE)) return new Expr.Literal(false);
-    if (match(TRUE)) return new Expr.Literal(true);
-    if (match(NIL)) return new Expr.Literal(null);
+    if (match(FALSE))
+      return new Expr.Literal(false);
+    if (match(TRUE))
+      return new Expr.Literal(true);
+    if (match(NIL))
+      return new Expr.Literal(null);
 
     if (match(NUMBER, STRING)) {
       return new Expr.Literal(previous().literal);
@@ -136,18 +182,20 @@ class Parser {
   }
 
   private Token consume(TokenType type, String message) {
-    if (check(type)) return advance();
-
+    if (check(type))
+      return advance();
     throw error(peek(), message);
   }
 
   private boolean check(TokenType type) {
-    if (isAtEnd()) return false;
+    if (isAtEnd())
+      return false;
     return peek().type == type;
   }
 
   private Token advance() {
-    if (!isAtEnd()) current++;
+    if (!isAtEnd())
+      current++;
     return previous();
   }
 

@@ -1,7 +1,8 @@
-# Crafting Interpreters — Chapters 4 and 5
+# Crafting Interpreters — Chapters 4–6
 
-This repository contains the complete Java code needed for Chapters 4 and 5,
-including nested C-style block comments and the RPN printer challenge.
+This repository contains the Java code for Chapters 4–6, including nested
+C-style block comments, the RPN printer, and all three Chapter 6 parsing
+challenges.
 
 ## Compile
 
@@ -32,8 +33,67 @@ Expected output:
 1 2 + 4 3 - *
 ```
 
+## Chapter 6 tests
+
+Start the prompt:
+
+```bash
+java com.craftinginterpreters.lox.Lox
+```
+
+Comma expressions are left-associative and have the lowest precedence:
+
+```text
+> 1 + 2, 3 * 4
+(, (+ 1.0 2.0) (* 3.0 4.0))
+> 1, 2, 3
+(, (, 1.0 2.0) 3.0)
+```
+
+The conditional operator is right-associative:
+
+```text
+> true ? 1 : false ? 2 : 3
+(?: true 1.0 (?: false 2.0 3.0))
+```
+
+A binary operator without a left operand reports a targeted error:
+
+```text
+> + 1 * 2
+[line 1] Error at '+': Missing left-hand operand.
+```
+
 ## Written response
 
 Supporting nested comments requires the scanner to track how many comments are
 open. Each `/*` increases the nesting level, while each `*/` decreases it. The
 scanner must also count newlines inside comments to keep line numbers accurate.
+
+### Question 6.1
+
+```text
+expression  -> comma ;
+comma       -> conditional ( "," conditional )* ;
+```
+
+The comma operator has the lowest precedence and is left-associative. It groups
+`a, b, c` as `(a, b), c`. At runtime, the left operand is evaluated and its
+result is discarded before the right operand is evaluated and returned.
+
+### Question 6.2
+
+```text
+conditional -> equality ( "?" expression ":" conditional )? ;
+```
+
+The expression between `?` and `:` can use the full expression grammar,
+including a comma expression. The recursive `conditional` after `:` makes the
+entire operator right-associative.
+
+### Question 6.3
+
+Each binary-precedence parser detects an operator that appears without a left
+operand, reports `Missing left-hand operand.`, and parses and discards the
+right operand at the appropriate precedence. A leading `-` remains valid unary
+negation, so it is not reported as a missing binary operand.

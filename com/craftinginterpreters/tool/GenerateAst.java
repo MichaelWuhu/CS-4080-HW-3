@@ -13,11 +13,11 @@ public class GenerateAst {
     }
 
     defineAst(args[0], "Expr", Arrays.asList(
-        "Binary   : Expr left, Token operator, Expr right",
-        "Grouping : Expr expression",
-        "Literal  : Object value",
-        "Unary    : Token operator, Expr right"
-    ));
+        "Binary      : Expr left, Token operator, Expr right",
+        "Conditional : Expr condition, Expr thenBranch, Expr elseBranch",
+        "Grouping    : Expr expression",
+        "Literal     : Object value",
+        "Unary       : Token operator, Expr right"));
   }
 
   private static void defineAst(
@@ -75,7 +75,8 @@ public class GenerateAst {
     writer.println("    }");
 
     writer.println();
-    for (String field : fields) writer.println("    final " + field + ";");
+    for (String field : fields)
+      writer.println("    final " + field + ";");
     writer.println("  }");
   }
 }
